@@ -1,0 +1,128 @@
+================================================================
+The Evanescence Programming Language - Grammar Specification
+================================================================
+
+Goal:    Python-like semantics, but NO whitespace significance.
+         Blocks are delimited by braces { }. Statements end with ';'.
+File ext: .eve
+Style:   Lowercase keywords, plain identifiers (no $ prefix).
+
+----------------------------------------------------------------
+Lexical elements
+----------------------------------------------------------------
+IDENT       = letter (letter | digit | "_")*
+NUMBER      = digit+ ("." digit+)?
+STRING      = "\"" (any-char-except-"\"" | "\\" escape)* "\""
+              escapes: \n  \t  \r  \\  \"
+COMMENT     = "#"  .... end-of-line
+            | "/*" .... "*/"
+WHITESPACE  = ignored everywhere (spaces, tabs, newlines)
+SEMICOLON   = ";"   (required statement terminator)
+
+Keywords:
+  var  const  if  else  while  for  in  range
+  func  return  break  continue  true  false  null
+  and  or
+
+----------------------------------------------------------------
+Operators
+----------------------------------------------------------------
+Arithmetic : +   -   *   /   //   %   **
+Comparison : ==  !=  <   <=  >   >=
+Logical    : and or  !
+Assignment : =   +=  -=  *=  /=
+
+----------------------------------------------------------------
+Grammar (EBNF)
+----------------------------------------------------------------
+program        = statement* EOF ;
+
+statement      = var_decl
+               | const_decl
+               | assign_stmt
+               | if_stmt
+               | while_stmt
+               | for_stmt
+               | func_decl
+               | return_stmt
+               | break_stmt
+               | continue_stmt
+               | expr_stmt
+               | block ;
+
+var_decl       = "var"   IDENT "=" expression ";" ;
+const_decl     = "const" IDENT "=" expression ";" ;
+assign_stmt    = IDENT ( "=" | "+=" | "-=" | "*=" | "/=" ) expression ";" ;
+
+if_stmt        = "if" "(" expression ")" block
+                 { "else" "if" "(" expression ")" block }
+                 [ "else" block ] ;
+
+while_stmt     = "while" "(" expression ")" block ;
+
+for_stmt       = "for" IDENT "in" ( range_expr | expression ) block ;
+range_expr     = "range" "(" expression [ "," expression [ "," expression ] ] ")" ;
+
+func_decl      = "func" IDENT "(" [ params ] ")" block ;
+params         = IDENT { "," IDENT } ;
+
+return_stmt    = "return" [ expression ] ";" ;
+break_stmt     = "break"    ";" ;
+continue_stmt  = "continue" ";" ;
+
+expr_stmt      = expression ";" ;
+block          = "{" statement* "}" ;
+
+----------------------------------------------------------------
+Expressions (precedence: lowest to highest)
+----------------------------------------------------------------
+expression     = logic_or ;
+logic_or       = logic_and { "or"  logic_and } ;
+logic_and      = equality  { "and" equality  } ;
+equality       = comparison { ( "==" | "!=" ) comparison } ;
+comparison     = term { ( ">" | ">=" | "<" | "<=" ) term } ;
+term           = factor { ( "+" | "-" ) factor } ;
+factor         = unary  { ( "*" | "/" | "//" | "%" ) unary } ;
+unary          = ( "!" | "-" ) unary | power ;
+power          = call [ "**" unary ] ;       (* right-associative *)
+call           = primary { "(" [ args ] ")" | "[" expression "]" } ;
+args           = expression { "," expression } ;
+
+primary        = NUMBER
+               | STRING
+               | "true" | "false" | "null"
+               | IDENT
+               | "(" expression ")"
+               | list_literal ;
+
+list_literal   = "[" [ expression { "," expression } ] "]" ;
+
+----------------------------------------------------------------
+Built-in functions
+----------------------------------------------------------------
+print(x)        -> prints x followed by newline
+input(prompt)   -> reads a line from stdin, returns string
+len(x)          -> length of string or list
+str(x)          -> convert to string
+int(x)          -> convert to integer (truncates floats, parses strings)
+type(x)         -> name of value's type ("number","string","bool","list","null","function")
+
+----------------------------------------------------------------
+Sample program
+----------------------------------------------------------------
+func factorial(n) {
+    if (n <= 1) { return 1; }
+    return n * factorial(n - 1);
+}
+
+var x = int(input("enter a number: "));
+print(factorial(x));
+
+for i in range(1, 5) {
+    print(i);
+}
+
+var fruits = ["apple", "banana", "cherry"];
+for f in fruits {
+    print(f);
+}

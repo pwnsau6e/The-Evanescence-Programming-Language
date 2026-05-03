@@ -1,0 +1,14 @@
+# Simple guess-the-number game using input().
+
+var secret = 7;
+var tries  = 0;
+var guess  = -1;
+
+while (guess != secret) {
+    guess = int(input("guess a number (1-10): "));
+    tries += 1;
+    if (guess < secret)      { print("too low");  }
+    else if (guess > secret) { print("too high"); }
+}
+
+print("got it in " + str(tries) + " tries!");

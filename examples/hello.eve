@@ -1,0 +1,7 @@
+# Your first Evanescence program.
+
+
+print("Hello, Evanescence!");
+
+var name = "world";
+print("Welcome to the " + name + ".");
